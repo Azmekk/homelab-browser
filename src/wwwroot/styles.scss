@@ -1,7 +1,7 @@
 // Define color variables
 $background-color: #121212;
 $text-color: #e0e0e0;
-$accent-color: #bb86fc;
+$accent-color: #4a90e2;
 $entry-background: #1f1f1f;
 $entry-hover: #333333;
 $entry-active: #444444;
@@ -51,17 +51,19 @@ body {
 }
 
 .service-title {
-    font-size: 1.5em;
+    font-size: 1.3em;
     font-weight: bold;
+    pointer-events: none;
 }
 
-.service-url-button {
+.service-url {
     font-size: 1em;
     color: $accent-color;
     margin-left: auto;
     height: 100%; // Make the button full height
     display: flex; // Display as a flex container
     align-items: center; // Center content vertically
+    pointer-events: none;
 }
 
 // Service icon styles
@@ -69,6 +71,7 @@ body {
     max-width: 100%;
     max-height: 100%;
     display: block;
+    pointer-events: none;
 }
 
 .homelab-title {

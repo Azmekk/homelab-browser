@@ -12,6 +12,7 @@ import (
 
 const (
 	appSettingsJsonName = "appsettings.json"
+	appsettingsJsonPath = "./settings/" + appSettingsJsonName
 )
 
 type AppSettings struct {
@@ -30,16 +31,43 @@ type EnvVariables struct {
 	ReloadTemplates bool
 }
 
+func createMockAppSettings() AppSettings {
+	return AppSettings{
+		PageTitle: "My initial homelab",
+		Services: []HomelabService{
+			{
+				Title:   "Creator's GitHub",
+				Url:     "https://github.com/Azmekk",
+				IconURL: "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+			},
+		},
+	}
+}
+
 func readOrCreateServicesJson() AppSettings {
-	if _, err := os.Stat(appSettingsJsonName); os.IsNotExist(err) {
-		file, err := os.Create(appSettingsJsonName)
+	_, err := os.Stat(appsettingsJsonPath)
+	if os.IsNotExist(err) {
+		file, err := os.Create(appsettingsJsonPath)
 		if err != nil {
 			log.Fatal("Could not create appsettings.json file")
 		}
 		defer file.Close()
+
+		appSettings := createMockAppSettings()
+		jsonData, err := json.Marshal(appSettings)
+		if err != nil {
+			log.Fatal("Could not marshal appsettings.json file")
+		}
+
+		_, err = file.Write(jsonData)
+		if err != nil {
+			log.Fatal("Could not write to appsettings.json file")
+		}
+
+		return appSettings
 	}
 
-	file, err := os.Open(appSettingsJsonName)
+	file, err := os.Open(appsettingsJsonPath)
 	if err != nil {
 		log.Fatal("Could not open appsettings.json file")
 	}
