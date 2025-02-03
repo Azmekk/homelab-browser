@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.PageTitle}}</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="scripts.js"></script>
+    <link rel="icon" href="icons/homelab.png">
+</head>
+
+<body>
+    <main>
+        <div class="container">
+            <div class="homelab-title">{{.PageTitle}}</div>
+            {{range .Services}}
+            <div onmousedown="mouseDown(event)" onmouseup="mouseUp(event)" class="entry">
+                <img class="service-icon" src="{{.IconURL}}" alt="icon" class="service-icon">
+                <div class="service-title">{{.Title}}</div>
+                <div id="url" class="service-url-button">{{.Url}}</div>
+            </div>
+            {{end}}
+        </div>
+    </main>
+</body>
+
+</html>
+</section>

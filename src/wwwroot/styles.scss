@@ -1,0 +1,77 @@
+// Define color variables
+$background-color: #121212;
+$text-color: #e0e0e0;
+$accent-color: #bb86fc;
+$entry-background: #1f1f1f;
+$entry-hover: #333333;
+$entry-active: #444444;
+
+// Global styles
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: $background-color;
+    color: $text-color;
+}
+
+// Container for content
+.container {
+    padding: 10px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    overflow-y: auto; // Make the container scrollable
+}
+
+// Entry styles
+.entry {
+    background-color: $entry-background;
+    padding: 10px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    height: 65px; // Make each entry long and thin
+    gap: 10px; // Add a small gap between flex items
+    width: 100%;
+    box-sizing: border-box;
+
+    &:hover {
+        background-color: $entry-hover;
+        transform: scale(1.01);
+    }
+
+    &:active {
+        background-color: $entry-active;
+    }
+}
+
+.service-title {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.service-url-button {
+    font-size: 1em;
+    color: $accent-color;
+    margin-left: auto;
+    height: 100%; // Make the button full height
+    display: flex; // Display as a flex container
+    align-items: center; // Center content vertically
+}
+
+// Service icon styles
+.service-icon {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+}
+
+.homelab-title {
+    font-size: 3em;
+    font-weight: bold;
+}
