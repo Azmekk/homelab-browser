@@ -15,11 +15,11 @@
         <div class="container">
             <div class="homelab-title">{{.PageTitle}}</div>
             {{range .Services}}
-            <div onmousedown="mouseDown(event)" onmouseup="mouseUp(event)" class="entry">
-                <img class="service-icon" src="{{.IconURL}}" alt="icon" class="service-icon">
+            <a class="entry" href="{{.Url}}">
+                <img class="service-icon" src="{{.IconURL}}" alt="icon">
                 <div class="service-title">{{.Title}}</div>
-                <div id="url" class="service-url">{{.Url}}</div>
-            </div>
+                <div class="service-url">{{.Url}}</div>
+            </a>
             {{end}}
         </div>
     </main>
