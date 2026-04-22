@@ -13,7 +13,6 @@ All Go commands run from `src/`.
 - Run locally: `go run .` (uses `./data/` by default; create a `.env` with `BIND_URL=:8080` or export it; set `RELOAD_TEMPLATES=true` during dev to re-parse templates per request).
 - Build binary: `go build -o homelab-browser .`
 - Regenerate DB code after editing `db/schema.sql` or `db/queries.sql`: `sqlc generate` (run from `src/`; requires `sqlc` — `go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest`).
-- Compile/watch SCSS during dev: `./update-and-watch-css.sh` (requires `sass` — `npm i -g sass`, or invoke `npx sass ...` directly).
 - Docker build: `docker build -t homelab-browser .` from the repo root.
 - Docker compose: `cp docker-compose.yml.example docker-compose.yml && docker compose up -d`.
 
@@ -28,10 +27,10 @@ No test suite exists.
 - **Sessions.** 32-byte random hex tokens stored in the `sessions` table; expiry is **90 days sliding** — `requireAuth` calls `RefreshSession` and rewrites the cookie on every authed request. The cookie is `HttpOnly`, `SameSite=Lax`, and `Secure` when the request is TLS. A goroutine in `main` calls `DeleteExpiredSessions` every 12 hours.
 - **Passwords.** bcrypt via `golang.org/x/crypto/bcrypt`. Setup enforces username ≥ 2 chars, password ≥ 8 chars with a confirmation field.
 - **Templates.** Stdlib `html/template` with a `layout.html` + per-page body (dashboard, admin, login, setup). The template set is parsed once at boot via `//go:embed` of `wwwroot/templates/*.html`; `RELOAD_TEMPLATES=true` makes `templateSet.render` reparse on each request for fast iteration.
-- **Static assets.** `styles.css`, `scripts.js`, and `admin.js` are embedded at compile time via `//go:embed` and served by simple handlers. The Dockerfile runs dart-sass in the builder stage so the embedded `styles.css` is the compiled artifact. Uploaded icons are NOT embedded — they come from `DATA_DIR/icons` at runtime.
+- **Static assets.** `styles.css`, `scripts.js`, and `admin.js` are embedded at compile time via `//go:embed` and served by simple handlers. `styles.css` is hand-written plain CSS with custom properties (`:root { --foo: ... }`) — no SCSS, no build step, nothing to install. Uploaded icons are NOT embedded — they come from `DATA_DIR/icons` at runtime.
 - **Admin UI.** `admin.html` is an Alpine.js 3 component (`adminApp()` in `admin.js`) loaded via CDN. Reorder uses SortableJS (also CDN) for drag AND visible ▲/▼ buttons for touch/mobile — both paths POST the new id order to `/admin/api/services/reorder`, which writes positions in a single transaction. Icon upload is a separate multipart POST after the create/update JSON call succeeds. Each service has a standalone `open_new_tab` checkbox in the list row that updates immediately; the edit modal also has one.
 - **Dashboard UI.** `scripts.js` runs `navigator.geolocation` with a 4s timeout; on success it calls Open-Meteo's forecast + reverse-geocoding APIs, on failure it falls back to `ipapi.co` for coordinates. No server-side weather proxy and no API keys. The clock updates roughly every 15 seconds, with a one-shot realignment at the next minute boundary so it doesn't drift visibly.
-- **Mobile.** `styles.scss` is mobile-first with a breakpoint at 720px: dashboard grid collapses to one column, admin rows restack into a grid-template-areas layout, the edit modal becomes fullscreen, and the username chip is hidden below 420px. Drag handles use `touch-action: none` so touch drag works; ▲/▼ buttons exist for users who prefer taps.
+- **Mobile.** `styles.css` is mobile-first with a breakpoint at 720px: dashboard grid collapses to one column, admin rows restack into a grid-template-areas layout, the edit modal becomes fullscreen, and the username chip is hidden below 420px. Drag handles use `touch-action: none` so touch drag works; ▲/▼ buttons exist for users who prefer taps.
 
 ## Route map
 
