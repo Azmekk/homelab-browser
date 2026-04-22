@@ -20,19 +20,20 @@ RUN go build -trimpath -ldflags="-s -w" -o /out/homelab-browser .
 FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates \
+    && apt-get install -y --no-install-recommends ca-certificates gosu \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --system --uid 10001 --home /app --shell /usr/sbin/nologin app
 
 WORKDIR /app
 COPY --from=builder /out/homelab-browser /app/homelab-browser
+COPY --chmod=0755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 ENV DATA_DIR=/data
 
 RUN mkdir -p /data && chown -R app:app /app /data
-USER app
 
 VOLUME ["/data"]
 EXPOSE 8080
 
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["/app/homelab-browser"]
