@@ -103,21 +103,24 @@ func main() {
 	r.Use(middleware.Compress(5))
 	r.Use(middleware.Timeout(30 * time.Second))
 
-	r.Get("/", app.handleDashboard)
+	// Public: only what's needed to sign in or sign up. Static CSS/JS is
+	// also public because the login/setup pages reference them.
 	r.Get("/login", app.handleLoginPage)
 	r.Post("/login", app.handleLoginSubmit)
 	r.Post("/logout", app.handleLogout)
 	r.Get("/setup", app.handleSetupPage)
 	r.Post("/setup", app.handleSetupSubmit)
-
 	r.Get("/styles.css", staticFileHandler("styles.css", "text/css; charset=utf-8"))
 	r.Get("/scripts.js", staticFileHandler("scripts.js", "application/javascript; charset=utf-8"))
 	r.Get("/admin.js", staticFileHandler("admin.js", "application/javascript; charset=utf-8"))
 
-	r.Get("/icons/*", http.StripPrefix("/icons/", http.FileServer(http.Dir(iconsDir))).ServeHTTP)
-
+	// Everything else is behind auth. Unauthed browser requests redirect
+	// to /login; unauthed JSON requests get 401.
+	iconFS := http.StripPrefix("/icons/", http.FileServer(http.Dir(iconsDir)))
 	r.Group(func(r chi.Router) {
 		r.Use(app.requireAuth)
+		r.Get("/", app.handleDashboard)
+		r.Get("/icons/*", iconFS.ServeHTTP)
 		r.Get("/admin", app.handleAdminPage)
 		r.Get("/admin/api/services", app.handleListServices)
 		r.Post("/admin/api/services", app.handleCreateService)

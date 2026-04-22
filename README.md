@@ -4,25 +4,22 @@ A small, self-hosted dashboard for the services running on your homelab. One pag
 
 ## Introduction
 
-If you run Plex, Sonarr, Overseerr, Pi-hole, a Synology NAS, whatever — you probably have a messy bookmarks folder or a note somewhere listing the URLs. This is the dashboard that replaces that: visit one page, see all your services as clickable cards, and manage them from your phone when you add a new one.
+A single page listing every service you self-host — Plex, Sonarr, Home Assistant, your NAS, whatever — as clean clickable cards. The whole dashboard sits behind a login, so it's just for you (and anyone you hand credentials to).
 
-It's designed to be boring in the best sense:
-
-- **No YAML, no editing JSON on the host.** Add, edit, reorder, and upload icons from a browser.
-- **One volume holds everything** — the SQLite DB and the uploaded icons — so backups are `tar czf homelab.tar.gz ./data` and restores are the reverse.
-- **Mobile-first UI.** The admin panel has both drag-to-reorder and ▲/▼ buttons so it's usable on a phone while you're moving around the house.
-- **No tracker, no telemetry, no account.** Weather is fetched directly from [Open-Meteo](https://open-meteo.com/) in your browser — the server never sees it.
+- **Managed from the browser.** Add services, rearrange them, upload custom icons — works just as well on your phone.
+- **Everything in one folder.** The database and your uploaded icons share a single directory. Moving to a new host is copying that folder.
+- **Private by default.** No telemetry, no third-party accounts, no API keys. The weather shown in the top bar is fetched by your browser directly from [Open-Meteo](https://open-meteo.com/) — the server never sees it.
 
 ## Features
 
 - 🧭 **One page, all your services.** Every app you self-host shows up as a clickable tile. Click, go.
-- 🛠 **Edit from your browser.** Add, rename, and delete services without SSH, config files, or container rebuilds.
-- 🖼 **Upload your own icons.** PNG, SVG, JPG, WebP, GIF, or ICO — whatever you've got, up to 2 MB.
+- 🔐 **Private to you.** The whole dashboard is behind a username and password — nobody else sees your list of services. One login lasts 90 days and refreshes itself as you use the app.
+- 🛠 **Manage everything from the browser.** Add, rename, and delete services right from the admin panel.
+- 🖼 **Upload your own icons.** PNG, SVG, JPG, WebP, GIF, or ICO, up to 2 MB.
 - 🔀 **Reorder your way.** Drag tiles around on desktop, tap ▲/▼ on mobile. Both save instantly.
 - 🌤 **Clock and local weather up top**, refreshed live.
-- 🪟 **Open tabs the way you want.** Mark each service as "open in new tab" or "replace this page" — per service, no global toggle.
-- 📱 **Made for phones too.** The admin panel works one-handed with a full-screen edit dialog and chunky tap targets.
-- 🔒 **Stay signed in.** One login lasts 90 days and refreshes itself as you use the app.
+- 🪟 **Open tabs the way you want.** Each service can open in a new tab or replace the current page — set per service.
+- 📱 **Made for phones too.** The admin panel works one-handed, with a full-screen edit dialog and chunky tap targets.
 - 🛡 **Your data stays yours.** No telemetry, no cloud account, no API keys. Weather comes straight from your browser to [Open-Meteo](https://open-meteo.com/) — the server never sees your location.
 
 ## Installation
@@ -94,10 +91,9 @@ To back up, stop the container and `tar czf homelab.tar.gz ./data`. To migrate t
 The app ships with **no default credentials** — it refuses to be useful until you create an admin account.
 
 1. Boot the container / binary.
-2. Visit `http://<host>:8080` — the dashboard renders empty.
-3. Click **Admin** in the footer (or visit `/admin` directly) — you'll be redirected to `/setup`.
-4. Choose a username (≥ 2 characters) and a password (≥ 8 characters). Confirm the password.
-5. You're dropped straight into the admin panel, logged in.
+2. Visit `http://<host>:8080` — you'll be redirected straight to the setup page.
+3. Choose a username (≥ 2 characters) and a password (≥ 8 characters). Confirm the password.
+4. You're dropped into the admin panel, logged in.
 
 From there: set your page title, click **+ Add service**, and upload some icons.
 

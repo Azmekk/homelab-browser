@@ -35,6 +35,8 @@
 </main>
 
 <footer class="footer">
-    {{if .Authenticated}}<a href="/admin">Admin</a>{{else}}<a href="/login">Admin</a>{{end}}
+    <a href="/admin">Admin</a>
+    <span class="footer-sep">·</span>
+    <form method="POST" action="/logout" class="footer-logout"><button type="submit" class="link-like">Logout</button></form>
 </footer>
 {{end}}

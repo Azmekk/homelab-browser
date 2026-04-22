@@ -227,9 +227,25 @@ input:focus {
     padding: 24px 20px 36px;
     color: var(--text-dim);
     font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
-.footer a { color: var(--text-muted); transition: color 0.15s ease; }
-.footer a:hover { color: var(--accent); }
+.footer a,
+.footer .link-like {
+    color: var(--text-muted);
+    transition: color 0.15s ease;
+    font: inherit;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.footer a:hover,
+.footer .link-like:hover { color: var(--accent); }
+.footer-sep { color: var(--text-dim); }
+.footer-logout { display: inline; margin: 0; padding: 0; }
 
 /* ----- Centered forms (login, setup) ----- */
 .centered {

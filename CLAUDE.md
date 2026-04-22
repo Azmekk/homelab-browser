@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A self-hosted homelab service dashboard. A Go server (chi v5 + stdlib `html/template`) renders a public dashboard of service tiles plus a gated admin panel (CRUD + icon upload + drag-or-button reorder + open-in-new-tab toggle). All state — page title, services, users, sessions — lives in a single SQLite DB; uploaded icons sit next to it. Frontend is a modern dark responsive design with a top bar that shows a live clock and Open-Meteo weather.
+A self-hosted homelab service dashboard. A Go server (chi v5 + stdlib `html/template`) renders a dashboard of service tiles plus an admin panel (CRUD + icon upload + drag-or-button reorder + open-in-new-tab toggle). The **entire app** is behind a username/password login — only `/login`, `/setup`, and the embedded CSS/JS are reachable without a session. All state — page title, services, users, sessions — lives in a single SQLite DB; uploaded icons sit next to it. Frontend is a modern dark responsive design with a top bar that shows a live clock and Open-Meteo weather.
 
 ## Commands
 
@@ -24,7 +24,7 @@ No test suite exists.
 
 ## Architecture notes
 
-- **Router.** chi v5 with `middleware.{RealIP,Logger,Recoverer,Compress,Timeout}`. Public routes live at the root; admin routes live under `chi.Router.Group` with an `app.requireAuth` middleware that redirects unauth'd browser requests to `/login` and returns 401 JSON for `/admin/api/*`.
+- **Router.** chi v5 with `middleware.{RealIP,Logger,Recoverer,Compress,Timeout}`. Only `/login`, `/setup`, `/logout`, and the embedded CSS/JS handlers are registered at the root without auth. Everything else — `/`, `/icons/*`, `/admin`, `/admin/api/*` — lives inside a `chi.Router.Group` with `app.requireAuth`, which redirects unauth'd browser requests to `/login` and returns 401 JSON for `/admin/api/*`.
 - **Data lives in `DATA_DIR`.** Defaults to `./data` locally and `/data` in the container (Dockerfile pins both via env). `DATA_DIR/app.db` is the SQLite database; `DATA_DIR/icons/` holds uploaded icons served at `/icons/<file>`. The directory is created on boot.
 - **SQLite + sqlc.** The DB driver is `modernc.org/sqlite` (pure Go, so the Dockerfile builds with `CGO_ENABLED=0` and needs no SQLite apt packages). `src/db/schema.sql` is the source of truth for tables; it is both read by sqlc at `sqlc generate` time AND executed at boot via `//go:embed` to apply idempotent `CREATE TABLE IF NOT EXISTS`. Query code in `src/db/*.go` is generated from `src/db/queries.sql` and checked into git, so production builds do not need the sqlc binary.
 - **First-run setup.** If the `users` table is empty, `GET /login` redirects to `GET /setup`, where the operator creates the initial admin account. Once any user exists, `/setup` redirects back to `/login`. There are no default credentials — the app refuses to be usable until a human creates one.
@@ -38,16 +38,18 @@ No test suite exists.
 
 ## Route map
 
+The **whole app is behind `requireAuth`**. Only what's strictly needed to sign in or bootstrap the first account stays public.
+
 Public:
-- `GET /` — dashboard
 - `GET/POST /login` — sign in (redirects to `/setup` when no users exist)
 - `POST /logout`
-- `GET/POST /setup` — first-run admin creation (404-equivalent once a user exists)
-- `GET /icons/{file}` — from `DATA_DIR/icons/`
-- `GET /styles.css`, `/scripts.js`, `/admin.js` — embedded assets
+- `GET/POST /setup` — first-run admin creation (redirects to `/login` once a user exists)
+- `GET /styles.css`, `/scripts.js`, `/admin.js` — embedded assets (login/setup pages need the CSS)
 
-Admin (`requireAuth`):
-- `GET /admin` — panel page
+Authenticated (`requireAuth`):
+- `GET /` — dashboard
+- `GET /icons/{file}` — from `DATA_DIR/icons/`
+- `GET /admin` — admin panel page
 - `GET /admin/api/services`
 - `POST /admin/api/services`
 - `PUT /admin/api/services/{id}`

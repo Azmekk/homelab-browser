@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"net/http"
 	"strings"
 
@@ -31,20 +30,14 @@ func toServiceViews(in []db.Service) []serviceView {
 }
 
 func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
 	services, err := app.store.Queries.ListServices(r.Context())
 	if err != nil {
 		http.Error(w, "db error", http.StatusInternalServerError)
 		return
 	}
-	_, _, authed := app.currentUser(r)
 	app.templates.render(w, "dashboard", map[string]any{
-		"PageTitle":     app.store.PageTitle(r.Context()),
-		"Services":      toServiceViews(services),
-		"Authenticated": authed,
+		"PageTitle": app.store.PageTitle(r.Context()),
+		"Services":  toServiceViews(services),
 	})
 }
 
@@ -182,5 +175,3 @@ func isJSONRequest(r *http.Request) bool {
 	return strings.Contains(accept, "application/json") ||
 		strings.HasPrefix(r.URL.Path, "/admin/api/")
 }
-
-var errNotFound = errors.New("not found")
