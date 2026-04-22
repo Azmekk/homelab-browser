@@ -24,7 +24,3 @@ docker-compose.yml.example
 # Node
 node_modules/
 package-lock.json
-
-# Stale icons left over from the old baked-in defaults — icons now live
-# in the DATA_DIR volume and are served from there at runtime.
-/src/wwwroot/icons/*

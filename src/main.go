@@ -113,6 +113,7 @@ func main() {
 	r.Get("/styles.css", staticFileHandler("styles.css", "text/css; charset=utf-8"))
 	r.Get("/scripts.js", staticFileHandler("scripts.js", "application/javascript; charset=utf-8"))
 	r.Get("/admin.js", staticFileHandler("admin.js", "application/javascript; charset=utf-8"))
+	r.Get("/app-icon.png", staticFileHandler("app-icon.png", "image/png"))
 
 	// Everything else is behind auth. Unauthed browser requests redirect
 	// to /login; unauthed JSON requests get 401.

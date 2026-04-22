@@ -70,7 +70,7 @@ func (t *templateSet) render(w http.ResponseWriter, name string, data any) {
 	}
 }
 
-//go:embed wwwroot/styles.css wwwroot/scripts.js wwwroot/admin.js
+//go:embed wwwroot/styles.css wwwroot/scripts.js wwwroot/admin.js wwwroot/app-icon.png
 var staticFS embed.FS
 
 func staticFileHandler(name string, contentType string) http.HandlerFunc {
