@@ -1,9 +1,9 @@
 services:
   homelab-browser:
-    # Either build the image locally:
-    build: .
-    # ...or pull it from a registry you've pushed to, e.g.:
-    # image: ghcr.io/your-user/homelab-browser:latest
+    # Either pull a tagged release from GHCR:
+    image: ghcr.io/azmekk/homelab-browser:latest
+    # ...or build the image locally from this repo:
+    # build: .
     container_name: homelab-browser
     restart: unless-stopped
     ports:

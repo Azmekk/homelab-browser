@@ -27,11 +27,12 @@ A single page listing every service you self-host — Plex, Sonarr, Home Assista
 ### Docker Compose (recommended)
 
 ```bash
-git clone https://github.com/Azmekk/homelab-browser.git
-cd homelab-browser
-cp docker-compose.yml.example docker-compose.yml
+curl -O https://raw.githubusercontent.com/Azmekk/homelab-browser/master/docker-compose.yml.example
+mv docker-compose.yml.example docker-compose.yml
 docker compose up -d
 ```
+
+The example file uses the prebuilt image published to GitHub Container Registry on every tagged release (`ghcr.io/azmekk/homelab-browser:latest`). Pin to a specific version by swapping `:latest` for `:1.0.0`, `:1.0`, or `:1`.
 
 Open `http://localhost:8080` and you'll be redirected to `/setup` to create the initial admin account.
 
@@ -40,14 +41,15 @@ The `./data` directory next to the compose file will hold `app.db` and `icons/` 
 ### Docker (standalone)
 
 ```bash
-docker build -t homelab-browser .
 docker run -d \
     --name homelab-browser \
     -p 8080:8080 \
     -v "$(pwd)/data:/data" \
     --restart unless-stopped \
-    homelab-browser
+    ghcr.io/azmekk/homelab-browser:latest
 ```
+
+Images are built for both `linux/amd64` and `linux/arm64`, so the same command works on a Raspberry Pi or Apple Silicon host.
 
 ### From source
 
