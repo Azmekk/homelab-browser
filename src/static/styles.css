@@ -1,3 +1,5 @@
+[hidden] { display: none !important; }
+
 /* ----- Tokens ----- */
 :root {
     --bg: #0b0d11;
@@ -346,7 +348,14 @@ input:focus {
     flex-wrap: wrap;
 }
 .inline-form input { flex: 1; min-width: 200px; }
-.inline-form .hint { color: var(--accent); font-size: 0.85rem; }
+.inline-form .hint {
+    color: var(--accent);
+    font-size: 0.85rem;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+}
+.inline-form .hint.visible { opacity: 1; }
 
 .empty-hint {
     color: var(--text-muted);

@@ -1,6 +1,5 @@
 {{define "head"}}
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
 <script src="/admin.js" defer></script>
 {{end}}
 
@@ -15,91 +14,81 @@
     </div>
 </header>
 
-<main class="admin" x-data="adminApp()" x-init="init()">
+<main class="admin">
     <section class="admin-section">
         <header class="admin-section-head">
             <h2>Dashboard title</h2>
         </header>
-        <form class="inline-form" @submit.prevent="saveTitle()">
-            <input type="text" x-model="pageTitle" required maxlength="120">
-            <button class="btn btn-primary" type="submit" :disabled="savingTitle">Save</button>
-            <span class="hint" x-show="titleSaved" x-transition.opacity>Saved</span>
+        <form id="title-form" class="inline-form">
+            <input id="title-input" type="text" required maxlength="120">
+            <button id="title-save-btn" class="btn btn-primary" type="submit">Save</button>
+            <span id="title-saved" class="hint">Saved</span>
         </form>
     </section>
 
     <section class="admin-section">
         <header class="admin-section-head">
             <h2>Services</h2>
-            <button class="btn btn-primary" type="button" @click="openCreate()">+ Add service</button>
+            <button id="add-svc-btn" class="btn btn-primary" type="button">+ Add service</button>
         </header>
 
-        <template x-if="services.length === 0">
-            <p class="empty-hint">No services yet. Add your first one above.</p>
-        </template>
+        <p id="empty-hint" class="empty-hint" hidden>No services yet. Add your first one above.</p>
 
-        <ul class="svc-list" x-ref="list">
-            <template x-for="(s, idx) in services" :key="s.id">
-                <li class="svc-row" :data-id="s.id">
-                    <button class="drag-handle" type="button" aria-label="Drag to reorder" title="Drag to reorder">⠿</button>
-                    <div class="svc-icon">
-                        <template x-if="s.icon_path">
-                            <img :src="'/' + s.icon_path" alt="">
-                        </template>
-                        <template x-if="!s.icon_path">
-                            <div class="svc-icon-placeholder" x-text="s.title.slice(0, 1).toUpperCase()"></div>
-                        </template>
-                    </div>
-                    <div class="svc-meta">
-                        <div class="svc-title" x-text="s.title"></div>
-                        <div class="svc-url" x-text="s.url"></div>
-                    </div>
-                    <label class="svc-newtab" :title="s.open_new_tab ? 'Opens in new tab' : 'Opens in same tab'">
-                        <input type="checkbox" :checked="s.open_new_tab" @change="toggleNewTab(s, $event.target.checked)">
-                        <span>New tab</span>
-                    </label>
-                    <div class="svc-actions">
-                        <button class="btn btn-tiny" type="button" @click="moveUp(idx)" :disabled="idx === 0" aria-label="Move up">▲</button>
-                        <button class="btn btn-tiny" type="button" @click="moveDown(idx)" :disabled="idx === services.length - 1" aria-label="Move down">▼</button>
-                        <button class="btn btn-tiny" type="button" @click="openEdit(s)" aria-label="Edit">Edit</button>
-                        <button class="btn btn-tiny btn-danger" type="button" @click="deleteSvc(s)" aria-label="Delete">Delete</button>
-                    </div>
-                </li>
-            </template>
-        </ul>
+        <ul id="svc-list" class="svc-list"></ul>
+
+        <template id="svc-row-tpl">
+            <li class="svc-row">
+                <button class="drag-handle" type="button" aria-label="Drag to reorder" title="Drag to reorder">⠿</button>
+                <div class="svc-icon">
+                    <img class="svc-icon-img" alt="" hidden>
+                    <div class="svc-icon-placeholder" hidden></div>
+                </div>
+                <div class="svc-meta">
+                    <div class="svc-title"></div>
+                    <div class="svc-url"></div>
+                </div>
+                <label class="svc-newtab">
+                    <input class="svc-newtab-input" type="checkbox">
+                    <span>New tab</span>
+                </label>
+                <div class="svc-actions">
+                    <button class="btn btn-tiny btn-up" type="button" aria-label="Move up">▲</button>
+                    <button class="btn btn-tiny btn-down" type="button" aria-label="Move down">▼</button>
+                    <button class="btn btn-tiny btn-edit" type="button" aria-label="Edit">Edit</button>
+                    <button class="btn btn-tiny btn-danger btn-delete" type="button" aria-label="Delete">Delete</button>
+                </div>
+            </li>
+        </template>
     </section>
 
-    <div class="modal-scrim" x-show="modalOpen" x-transition.opacity @click.self="closeModal()">
+    <div id="modal-scrim" class="modal-scrim" hidden>
         <div class="modal">
             <header class="modal-head">
-                <h3 x-text="editing.id ? 'Edit service' : 'Add service'"></h3>
-                <button class="btn btn-ghost" type="button" @click="closeModal()">✕</button>
+                <h3 id="modal-title">Add service</h3>
+                <button id="modal-close-btn" class="btn btn-ghost" type="button">✕</button>
             </header>
-            <form class="modal-body" @submit.prevent="saveSvc()">
+            <form id="svc-form" class="modal-body">
                 <label>
                     <span>Title</span>
-                    <input type="text" x-model="editing.title" required maxlength="120">
+                    <input id="svc-title-input" type="text" required maxlength="120">
                 </label>
                 <label>
                     <span>URL</span>
-                    <input type="url" x-model="editing.url" required placeholder="https://…">
+                    <input id="svc-url-input" type="url" required placeholder="https://…">
                 </label>
                 <label class="checkbox-row">
-                    <input type="checkbox" x-model="editing.open_new_tab">
+                    <input id="svc-newtab-input" type="checkbox">
                     <span>Open in new tab</span>
                 </label>
                 <label class="file-row">
                     <span>Icon (optional, max 2MB)</span>
-                    <input type="file" x-ref="iconFile" accept="image/*">
-                    <template x-if="editing.icon_path">
-                        <div class="current-icon">Current: <img :src="'/' + editing.icon_path" alt=""></div>
-                    </template>
+                    <input id="svc-icon-file" type="file" accept="image/*">
+                    <div id="svc-current-icon" class="current-icon" hidden>Current: <img id="svc-current-icon-img" alt=""></div>
                 </label>
-                <template x-if="modalError">
-                    <div class="form-error" x-text="modalError"></div>
-                </template>
+                <div id="modal-error" class="form-error" hidden></div>
                 <div class="modal-foot">
-                    <button class="btn btn-ghost" type="button" @click="closeModal()">Cancel</button>
-                    <button class="btn btn-primary" type="submit" :disabled="saving" x-text="saving ? 'Saving…' : 'Save'"></button>
+                    <button id="modal-cancel-btn" class="btn btn-ghost" type="button">Cancel</button>
+                    <button id="modal-save-btn" class="btn btn-primary" type="submit">Save</button>
                 </div>
             </form>
         </div>
