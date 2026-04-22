@@ -1,0 +1,21 @@
+{{define "head"}}{{end}}
+
+{{define "body"}}
+<main class="centered">
+    <form class="card-form" method="POST" action="/login" autocomplete="on">
+        <h1 class="card-form-title">Sign in</h1>
+        <p class="card-form-sub">{{.PageTitle}}</p>
+        {{if .Error}}<div class="form-error">{{.Error}}</div>{{end}}
+        <label>
+            <span>Username</span>
+            <input type="text" name="username" value="{{.Username}}" autocomplete="username" required autofocus>
+        </label>
+        <label>
+            <span>Password</span>
+            <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <button class="btn btn-primary" type="submit">Sign in</button>
+        <a class="link-subtle" href="/">← back to dashboard</a>
+    </form>
+</main>
+{{end}}

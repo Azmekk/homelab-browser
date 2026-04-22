@@ -1,0 +1,108 @@
+{{define "head"}}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
+<script src="/admin.js" defer></script>
+{{end}}
+
+{{define "body"}}
+<header class="topbar">
+    <div class="topbar-inner topbar-admin">
+        <a class="brand" href="/">{{.PageTitle}}</a>
+        <div class="topbar-admin-right">
+            <span class="user-chip">{{.Username}}</span>
+            <form method="POST" action="/logout"><button class="btn btn-ghost" type="submit">Logout</button></form>
+        </div>
+    </div>
+</header>
+
+<main class="admin" x-data="adminApp()" x-init="init()">
+    <section class="admin-section">
+        <header class="admin-section-head">
+            <h2>Dashboard title</h2>
+        </header>
+        <form class="inline-form" @submit.prevent="saveTitle()">
+            <input type="text" x-model="pageTitle" required maxlength="120">
+            <button class="btn btn-primary" type="submit" :disabled="savingTitle">Save</button>
+            <span class="hint" x-show="titleSaved" x-transition.opacity>Saved</span>
+        </form>
+    </section>
+
+    <section class="admin-section">
+        <header class="admin-section-head">
+            <h2>Services</h2>
+            <button class="btn btn-primary" type="button" @click="openCreate()">+ Add service</button>
+        </header>
+
+        <template x-if="services.length === 0">
+            <p class="empty-hint">No services yet. Add your first one above.</p>
+        </template>
+
+        <ul class="svc-list" x-ref="list">
+            <template x-for="(s, idx) in services" :key="s.id">
+                <li class="svc-row" :data-id="s.id">
+                    <button class="drag-handle" type="button" aria-label="Drag to reorder" title="Drag to reorder">⠿</button>
+                    <div class="svc-icon">
+                        <template x-if="s.icon_path">
+                            <img :src="'/' + s.icon_path" alt="">
+                        </template>
+                        <template x-if="!s.icon_path">
+                            <div class="svc-icon-placeholder" x-text="s.title.slice(0, 1).toUpperCase()"></div>
+                        </template>
+                    </div>
+                    <div class="svc-meta">
+                        <div class="svc-title" x-text="s.title"></div>
+                        <div class="svc-url" x-text="s.url"></div>
+                    </div>
+                    <label class="svc-newtab" :title="s.open_new_tab ? 'Opens in new tab' : 'Opens in same tab'">
+                        <input type="checkbox" :checked="s.open_new_tab" @change="toggleNewTab(s, $event.target.checked)">
+                        <span>New tab</span>
+                    </label>
+                    <div class="svc-actions">
+                        <button class="btn btn-tiny" type="button" @click="moveUp(idx)" :disabled="idx === 0" aria-label="Move up">▲</button>
+                        <button class="btn btn-tiny" type="button" @click="moveDown(idx)" :disabled="idx === services.length - 1" aria-label="Move down">▼</button>
+                        <button class="btn btn-tiny" type="button" @click="openEdit(s)" aria-label="Edit">Edit</button>
+                        <button class="btn btn-tiny btn-danger" type="button" @click="deleteSvc(s)" aria-label="Delete">Delete</button>
+                    </div>
+                </li>
+            </template>
+        </ul>
+    </section>
+
+    <div class="modal-scrim" x-show="modalOpen" x-transition.opacity @click.self="closeModal()">
+        <div class="modal">
+            <header class="modal-head">
+                <h3 x-text="editing.id ? 'Edit service' : 'Add service'"></h3>
+                <button class="btn btn-ghost" type="button" @click="closeModal()">✕</button>
+            </header>
+            <form class="modal-body" @submit.prevent="saveSvc()">
+                <label>
+                    <span>Title</span>
+                    <input type="text" x-model="editing.title" required maxlength="120">
+                </label>
+                <label>
+                    <span>URL</span>
+                    <input type="url" x-model="editing.url" required placeholder="https://…">
+                </label>
+                <label class="checkbox-row">
+                    <input type="checkbox" x-model="editing.open_new_tab">
+                    <span>Open in new tab</span>
+                </label>
+                <label class="file-row">
+                    <span>Icon (optional, max 2MB)</span>
+                    <input type="file" x-ref="iconFile" accept="image/*">
+                    <template x-if="editing.icon_path">
+                        <div class="current-icon">Current: <img :src="'/' + editing.icon_path" alt=""></div>
+                    </template>
+                </label>
+                <template x-if="modalError">
+                    <div class="form-error" x-text="modalError"></div>
+                </template>
+                <div class="modal-foot">
+                    <button class="btn btn-ghost" type="button" @click="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" type="submit" :disabled="saving" x-text="saving ? 'Saving…' : 'Save'"></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+{{end}}

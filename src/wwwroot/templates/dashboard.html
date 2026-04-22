@@ -1,0 +1,40 @@
+{{define "head"}}<script src="/scripts.js" defer></script>{{end}}
+
+{{define "body"}}
+<header class="topbar">
+    <div class="topbar-inner">
+        <h1 class="brand">{{.PageTitle}}</h1>
+        <div class="clock" id="clock" aria-live="polite">--:--</div>
+        <div class="weather" id="weather" aria-live="polite">
+            <span class="weather-icon" aria-hidden="true">◌</span>
+            <span class="weather-temp">--°</span>
+            <span class="weather-loc">Loading…</span>
+        </div>
+    </div>
+</header>
+
+<main class="dashboard">
+    {{if .Services}}
+    <div class="grid">
+        {{range .Services}}
+        <a class="card" href="{{.Url}}"{{if .OpenNewTab}} target="_blank" rel="noopener noreferrer"{{end}}>
+            {{if .IconPath}}<img class="card-icon" src="/{{.IconPath}}" alt="" loading="lazy">{{else}}<div class="card-icon card-icon--placeholder" aria-hidden="true">{{slice .Title 0 1}}</div>{{end}}
+            <div class="card-body">
+                <div class="card-title">{{.Title}}</div>
+                <div class="card-url">{{.Url}}</div>
+            </div>
+        </a>
+        {{end}}
+    </div>
+    {{else}}
+    <div class="empty">
+        <p>No services yet.</p>
+        <a class="btn" href="/admin">Open admin panel</a>
+    </div>
+    {{end}}
+</main>
+
+<footer class="footer">
+    {{if .Authenticated}}<a href="/admin">Admin</a>{{else}}<a href="/login">Admin</a>{{end}}
+</footer>
+{{end}}

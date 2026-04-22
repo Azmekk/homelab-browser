@@ -1,129 +1,133 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"log"
+	"net/http"
 	"os"
+	"path/filepath"
+	"strconv"
+	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html/v2"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 )
 
 const (
-	appSettingsJsonName = "appsettings.json"
-	appsettingsJsonPath = "./settings/" + appSettingsJsonName
+	defaultPageTitle = "My Homelab"
+	settingPageTitle = "page_title"
 )
 
-type AppSettings struct {
-	PageTitle string
-	Services  []HomelabService
-}
-
-type HomelabService struct {
-	Title   string
-	Url     string
-	IconURL string
-}
-
-type EnvVariables struct {
+type envConfig struct {
 	BindURL         string
+	DataDir         string
 	ReloadTemplates bool
 }
 
-func createMockAppSettings() AppSettings {
-	return AppSettings{
-		PageTitle: "My initial homelab",
-		Services: []HomelabService{
-			{
-				Title:   "Creator's GitHub",
-				Url:     "https://github.com/Azmekk",
-				IconURL: "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
-			},
-		},
-	}
+type App struct {
+	store     *Store
+	templates *templateSet
+	iconsDir  string
 }
 
-func readOrCreateServicesJson() AppSettings {
-	_, err := os.Stat(appsettingsJsonPath)
-	if os.IsNotExist(err) {
-		file, err := os.Create(appsettingsJsonPath)
-		if err != nil {
-			log.Fatal("Could not create appsettings.json file")
-		}
-		defer file.Close()
-
-		appSettings := createMockAppSettings()
-		jsonData, err := json.Marshal(appSettings)
-		if err != nil {
-			log.Fatal("Could not marshal appsettings.json file")
-		}
-
-		_, err = file.Write(jsonData)
-		if err != nil {
-			log.Fatal("Could not write to appsettings.json file")
-		}
-
-		return appSettings
-	}
-
-	file, err := os.Open(appsettingsJsonPath)
-	if err != nil {
-		log.Fatal("Could not open appsettings.json file")
-	}
-	defer file.Close()
-
-	var appSettings AppSettings
-	if err := json.NewDecoder(file).Decode(&appSettings); err != nil {
-		log.Fatal("Could not decode appsettings.json file")
-	}
-
-	return appSettings
-}
-
-func loadEnv() EnvVariables {
-	var env EnvVariables
+func loadEnv() envConfig {
 	if os.Getenv("BIND_URL") == "" {
-		err := godotenv.Load()
-
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
+		_ = godotenv.Load()
 	}
+	bind := os.Getenv("BIND_URL")
+	if bind == "" {
+		bind = ":8080"
+	}
+	dataDir := os.Getenv("DATA_DIR")
+	if dataDir == "" {
+		dataDir = "./data"
+	}
+	reload, _ := strconv.ParseBool(os.Getenv("RELOAD_TEMPLATES"))
+	return envConfig{
+		BindURL:         bind,
+		DataDir:         dataDir,
+		ReloadTemplates: reload,
+	}
+}
 
-	env.BindURL = os.Getenv("BIND_URL")
-	env.ReloadTemplates = os.Getenv("RELOAD_TEMPLATES") == "true"
-
-	return env
+func ensureDirs(dataDir string) (string, error) {
+	if err := os.MkdirAll(dataDir, 0o755); err != nil {
+		return "", err
+	}
+	icons := filepath.Join(dataDir, "icons")
+	if err := os.MkdirAll(icons, 0o755); err != nil {
+		return "", err
+	}
+	return icons, nil
 }
 
 func main() {
-	envVariables := loadEnv()
+	cfg := loadEnv()
 
-	engine := html.New("./wwwroot", ".html")
-	engine.Reload(envVariables.ReloadTemplates)
+	iconsDir, err := ensureDirs(cfg.DataDir)
+	if err != nil {
+		log.Fatalf("create data dirs: %v", err)
+	}
 
-	app := fiber.New(fiber.Config{
-		Views: engine,
+	store, err := openStore(cfg.DataDir)
+	if err != nil {
+		log.Fatalf("open store: %v", err)
+	}
+	defer store.Close()
+
+	go func() {
+		ticker := time.NewTicker(12 * time.Hour)
+		defer ticker.Stop()
+		for {
+			_ = store.Queries.DeleteExpiredSessions(context.Background(), time.Now().Unix())
+			<-ticker.C
+		}
+	}()
+
+	tmpl, err := newTemplateSet(cfg.ReloadTemplates)
+	if err != nil {
+		log.Fatalf("load templates: %v", err)
+	}
+
+	app := &App{
+		store:     store,
+		templates: tmpl,
+		iconsDir:  iconsDir,
+	}
+
+	r := chi.NewRouter()
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.Compress(5))
+	r.Use(middleware.Timeout(30 * time.Second))
+
+	r.Get("/", app.handleDashboard)
+	r.Get("/login", app.handleLoginPage)
+	r.Post("/login", app.handleLoginSubmit)
+	r.Post("/logout", app.handleLogout)
+	r.Get("/setup", app.handleSetupPage)
+	r.Post("/setup", app.handleSetupSubmit)
+
+	r.Get("/styles.css", staticFileHandler("styles.css", "text/css; charset=utf-8"))
+	r.Get("/scripts.js", staticFileHandler("scripts.js", "application/javascript; charset=utf-8"))
+	r.Get("/admin.js", staticFileHandler("admin.js", "application/javascript; charset=utf-8"))
+
+	r.Get("/icons/*", http.StripPrefix("/icons/", http.FileServer(http.Dir(iconsDir))).ServeHTTP)
+
+	r.Group(func(r chi.Router) {
+		r.Use(app.requireAuth)
+		r.Get("/admin", app.handleAdminPage)
+		r.Get("/admin/api/services", app.handleListServices)
+		r.Post("/admin/api/services", app.handleCreateService)
+		r.Put("/admin/api/services/{id}", app.handleUpdateService)
+		r.Delete("/admin/api/services/{id}", app.handleDeleteService)
+		r.Post("/admin/api/services/reorder", app.handleReorderServices)
+		r.Post("/admin/api/services/{id}/icon", app.handleUploadIcon)
+		r.Post("/admin/api/settings", app.handleUpdateSettings)
 	})
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		appSettings := readOrCreateServicesJson()
-		return c.Render("index", fiber.Map{
-			"PageTitle": appSettings.PageTitle,
-			"Services":  appSettings.Services,
-		})
-	})
-
-	app.Get("styles.css", func(c *fiber.Ctx) error {
-		return c.SendFile("./wwwroot/styles.css")
-	})
-
-	app.Get("scripts.js", func(c *fiber.Ctx) error {
-		return c.SendFile("./wwwroot/scripts.js")
-	})
-
-	app.Static("/icons", "./wwwroot/icons")
-
-	log.Fatal(app.Listen(envVariables.BindURL))
+	log.Printf("homelab-browser listening on %s (data dir: %s)", cfg.BindURL, cfg.DataDir)
+	log.Fatal(http.ListenAndServe(cfg.BindURL, r))
 }

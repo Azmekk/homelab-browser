@@ -1,0 +1,24 @@
+{{define "head"}}{{end}}
+
+{{define "body"}}
+<main class="centered">
+    <form class="card-form" method="POST" action="/setup" autocomplete="on">
+        <h1 class="card-form-title">Create admin account</h1>
+        <p class="card-form-sub">First-time setup — this account will manage your homelab dashboard.</p>
+        {{if .Error}}<div class="form-error">{{.Error}}</div>{{end}}
+        <label>
+            <span>Username</span>
+            <input type="text" name="username" value="{{.Username}}" autocomplete="username" required autofocus minlength="2">
+        </label>
+        <label>
+            <span>Password <small>(min 8 characters)</small></span>
+            <input type="password" name="password" autocomplete="new-password" required minlength="8">
+        </label>
+        <label>
+            <span>Confirm password</span>
+            <input type="password" name="confirm" autocomplete="new-password" required minlength="8">
+        </label>
+        <button class="btn btn-primary" type="submit">Create account</button>
+    </form>
+</main>
+{{end}}

@@ -1,0 +1,14 @@
+# Build artifacts
+/src/homelab-browser
+/src/homelab-browser.exe
+
+# Local data (SQLite DB + uploaded icons)
+/src/data/
+/data/
+
+# Dev env
+/src/.env
+
+# Node (only for local sass compile helper)
+node_modules/
+package-lock.json

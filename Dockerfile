@@ -1,41 +1,52 @@
-# Step 1: Build the Go application
-FROM golang:1.23 AS builder
+# syntax=docker/dockerfile:1
 
-WORKDIR /app
+# --- Builder: compile SCSS + Go binary ---
+FROM golang:1.23-bookworm AS builder
 
-# Copy the go.mod and go.sum files and download dependencies
-COPY ./src/main.go ./src/go.mod ./src/go.sum ./
-COPY ./src/wwwroot ./wwwroot
-# Install Dart Sass
-RUN apt-get update && apt-get install -y curl
-RUN curl -L https://github.com/sass/dart-sass/releases/download/1.83.4/dart-sass-1.83.4-linux-x64.tar.gz -o dart-sass.tar.gz
-RUN tar -xzf dart-sass.tar.gz
+WORKDIR /build
 
-RUN chmod +x ./dart-sass/sass
-RUN chmod +x ./dart-sass/src/dart
+# Install dart-sass to compile SCSS at build time.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+RUN curl -L https://github.com/sass/dart-sass/releases/download/1.83.4/dart-sass-1.83.4-linux-x64.tar.gz \
+        -o /tmp/dart-sass.tar.gz \
+    && tar -xzf /tmp/dart-sass.tar.gz -C /opt \
+    && ln -s /opt/dart-sass/sass /usr/local/bin/sass \
+    && rm /tmp/dart-sass.tar.gz
 
-# Copy the SCSS files and compile them to CSS
-COPY ./src/wwwroot/styles.scss ./src/wwwroot/styles.scss
-RUN ./dart-sass/sass ./wwwroot/styles.scss ./wwwroot/styles.css --no-source-map --style=compressed
-
-
+# Deps first (better layer cache).
+COPY src/go.mod src/go.sum ./
 RUN go mod download
-RUN go build -o homelab-browser
 
-# Step 2: Create the deployment image
-FROM debian:bookworm-slim
+# Sources.
+COPY src/ ./
+
+# Compile SCSS to CSS so it ends up in the embedded filesystem.
+RUN sass --no-source-map --style=compressed ./wwwroot/styles.scss ./wwwroot/styles.css
+
+# Build a fully static pure-Go binary (modernc.org/sqlite → no CGO needed).
+ENV CGO_ENABLED=0
+RUN go build -trimpath -ldflags="-s -w" -o /out/homelab-browser .
+
+# --- Runtime: minimal image ---
+FROM debian:bookworm-slim AS runtime
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --uid 10001 --home /app --shell /usr/sbin/nologin app
 
 WORKDIR /app
+COPY --from=builder /out/homelab-browser /app/homelab-browser
 
-# Copy the built application from the builder stage
-COPY --from=builder /app/homelab-browser .
-COPY --from=builder /app/wwwroot /app/wwwroot
-COPY ./src/settings/appsettings.json /app/appsettings/appsettings.json
+ENV BIND_URL=:8080
+ENV DATA_DIR=/data
 
-RUN chmod +x ./homelab-browser
+RUN mkdir -p /data && chown -R app:app /app /data
+USER app
 
-# Expose the port the application runs on
+VOLUME ["/data"]
 EXPOSE 8080
 
-# Command to run the application
-CMD ["./homelab-browser"]
+CMD ["/app/homelab-browser"]
