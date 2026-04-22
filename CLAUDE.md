@@ -10,7 +10,7 @@ A self-hosted homelab service dashboard. A Go server (chi v5 + stdlib `html/temp
 
 All Go commands run from `src/`.
 
-- Run locally: `go run .` (uses `./data/` by default; create a `.env` with `BIND_URL=:8080` or export it; set `RELOAD_TEMPLATES=true` during dev to re-parse templates per request).
+- Run locally: `go run .` (listens on `:8080` and uses `./data/` by default; override with `PORT=9000` in a `.env` or the environment; set `RELOAD_TEMPLATES=true` during dev to re-parse templates per request).
 - Build binary: `go build -o ../bin/homelab-browser .` (see _Build-artifact convention_ below).
 - Regenerate DB code after editing `db/schema.sql` or `db/queries.sql`: `sqlc generate` (run from `src/`; requires `sqlc` — `go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest`).
 - Docker build: `docker build -t homelab-browser .` from the repo root.
@@ -60,8 +60,8 @@ Authenticated (`requireAuth`):
 
 ## Env vars
 
-- `BIND_URL` — listen address (e.g. `:8080`; default `:8080`).
-- `DATA_DIR` — where `app.db` + `icons/` live (default `./data` locally, `/data` in container).
+- `PORT` — listen port (default `8080`). **From-source only.** The container's port is fixed at `8080` (matching `EXPOSE`) — if you need a different host port, remap it with `-p <host>:8080` or the compose `ports:` mapping. Setting `PORT` inside a container will desync from `EXPOSE` and isn't supported.
+- `DATA_DIR` — where `app.db` + `icons/` live (default `./data` locally, `/data` in container via Dockerfile `ENV`).
 - `RELOAD_TEMPLATES` — `true` to reparse templates per request in dev.
 
-`.env` is loaded via `godotenv` only when `BIND_URL` isn't already set in the process environment, which lets the container keep using its `ENV` defaults without a `.env` file.
+`.env` is loaded via `godotenv` on every boot; it's a no-op when the file doesn't exist (e.g. inside the container) and it never overwrites env vars that are already set, so Docker `ENV` defaults win.

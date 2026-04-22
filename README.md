@@ -59,18 +59,18 @@ Requires Go 1.23 or newer.
 git clone https://github.com/Azmekk/homelab-browser.git
 cd homelab-browser/src
 go build -o ../bin/homelab-browser .
-BIND_URL=:8080 DATA_DIR=./data ../bin/homelab-browser
+PORT=8080 DATA_DIR=./data ../bin/homelab-browser
 ```
 
-Build artifacts are written to `/bin/` at the repo root (gitignored).
+Both env vars have sensible defaults (`PORT=8080`, `DATA_DIR=./data`) so the explicit values above are just for clarity. Build artifacts are written to `/bin/` at the repo root (gitignored).
 
 ## Configuration
 
-All configuration is via environment variables. A `.env` file in `src/` is read automatically when `BIND_URL` isn't already set in the process environment — handy for local dev, irrelevant in containers.
+All configuration is via environment variables. A `.env` file in `src/` is read automatically if present (ignored in containers, where Docker `ENV` defaults apply).
 
 | Variable           | Default (source) | Default (Docker) | Purpose |
 |--------------------|------------------|------------------|---------|
-| `BIND_URL`         | `:8080`          | `:8080`          | Listen address, e.g. `:8080` or `127.0.0.1:9000`. |
+| `PORT`             | `8080`           | _fixed at 8080_  | Listen port. **From-source only** — the container always listens on `:8080`; use `-p <host>:8080` to remap. |
 | `DATA_DIR`         | `./data`         | `/data`          | Where `app.db` and `icons/` live. |
 | `RELOAD_TEMPLATES` | unset            | unset            | Set to `true` to reparse HTML templates on every request (dev only). |
 

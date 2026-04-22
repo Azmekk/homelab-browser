@@ -20,7 +20,7 @@ const (
 )
 
 type envConfig struct {
-	BindURL         string
+	Port            string
 	DataDir         string
 	ReloadTemplates bool
 }
@@ -32,12 +32,14 @@ type App struct {
 }
 
 func loadEnv() envConfig {
-	if os.Getenv("BIND_URL") == "" {
-		_ = godotenv.Load()
-	}
-	bind := os.Getenv("BIND_URL")
-	if bind == "" {
-		bind = ":8080"
+	// godotenv does not overwrite env vars that are already set, so it's
+	// safe to call unconditionally — in a container the Docker ENVs win
+	// and the (missing) .env is silently ignored.
+	_ = godotenv.Load()
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
 	}
 	dataDir := os.Getenv("DATA_DIR")
 	if dataDir == "" {
@@ -45,7 +47,7 @@ func loadEnv() envConfig {
 	}
 	reload, _ := strconv.ParseBool(os.Getenv("RELOAD_TEMPLATES"))
 	return envConfig{
-		BindURL:         bind,
+		Port:            port,
 		DataDir:         dataDir,
 		ReloadTemplates: reload,
 	}
@@ -132,6 +134,7 @@ func main() {
 		r.Post("/admin/api/settings", app.handleUpdateSettings)
 	})
 
-	log.Printf("homelab-browser listening on %s (data dir: %s)", cfg.BindURL, cfg.DataDir)
-	log.Fatal(http.ListenAndServe(cfg.BindURL, r))
+	addr := ":" + cfg.Port
+	log.Printf("homelab-browser listening on %s (data dir: %s)", addr, cfg.DataDir)
+	log.Fatal(http.ListenAndServe(addr, r))
 }

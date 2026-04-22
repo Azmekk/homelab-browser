@@ -27,7 +27,6 @@ RUN apt-get update \
 WORKDIR /app
 COPY --from=builder /out/homelab-browser /app/homelab-browser
 
-ENV BIND_URL=:8080
 ENV DATA_DIR=/data
 
 RUN mkdir -p /data && chown -R app:app /app /data

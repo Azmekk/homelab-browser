@@ -7,14 +7,8 @@ services:
     container_name: homelab-browser
     restart: unless-stopped
     ports:
+      # Map whichever host port you like to the container's fixed :8080.
       - "8080:8080"
-    environment:
-      # Listen address inside the container.
-      BIND_URL: ":8080"
-      # Where the SQLite DB and uploaded icons live. Matches the volume below.
-      DATA_DIR: "/data"
-      # Set to "true" to re-parse HTML templates on every request during dev.
-      # RELOAD_TEMPLATES: "true"
     volumes:
       # Persist the DB and uploaded service icons across container rebuilds.
       - ./data:/data
