@@ -11,12 +11,16 @@ A self-hosted homelab service dashboard. A Go server (chi v5 + stdlib `html/temp
 All Go commands run from `src/`.
 
 - Run locally: `go run .` (uses `./data/` by default; create a `.env` with `BIND_URL=:8080` or export it; set `RELOAD_TEMPLATES=true` during dev to re-parse templates per request).
-- Build binary: `go build -o homelab-browser .`
+- Build binary: `go build -o ../bin/homelab-browser .` (see _Build-artifact convention_ below).
 - Regenerate DB code after editing `db/schema.sql` or `db/queries.sql`: `sqlc generate` (run from `src/`; requires `sqlc` — `go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest`).
 - Docker build: `docker build -t homelab-browser .` from the repo root.
 - Docker compose: `cp docker-compose.yml.example docker-compose.yml && docker compose up -d`.
 
 No test suite exists.
+
+### Build-artifact convention
+
+**All locally-built binaries go in `/bin/` at the repo root**, which is gitignored. Do not write binaries into `src/` or any other directory. This keeps the source tree clean and prevents accidental commits of compiled output. Smoke-test binaries, one-off builds, and anything from `go build -o ...` should all land in `/bin/`. The Docker build is unaffected — it uses a multi-stage `/out/` path inside the builder image.
 
 ## Architecture notes
 

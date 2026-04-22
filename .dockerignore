@@ -1,2 +1,30 @@
-./src/wwwroot/icons/*
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docs — not needed inside the image
+*.md
+docker-compose.yml
+docker-compose.yml.example
+
+# Build artifacts
+/bin/
+/src/homelab-browser
+/src/homelab-browser.exe
+
+# Local runtime data
+/data/
+/src/data/
+
+# Dev env
 .env
+/src/.env
+
+# Node
+node_modules/
+package-lock.json
+
+# Stale icons left over from the old baked-in defaults — icons now live
+# in the DATA_DIR volume and are served from there at runtime.
+/src/wwwroot/icons/*

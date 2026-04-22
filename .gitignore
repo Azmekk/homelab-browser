@@ -1,14 +1,14 @@
-# Build artifacts
-/src/homelab-browser
-/src/homelab-browser.exe
+# Build artifacts (all binaries live in /bin at the repo root)
+/bin/
 
 # Local data (SQLite DB + uploaded icons)
-/src/data/
 /data/
+/src/data/
 
-# Dev env
+# Dev env files
+.env
 /src/.env
 
-# Node (only for local sass compile helper)
+# Node (only used if you ever run a helper script locally)
 node_modules/
 package-lock.json

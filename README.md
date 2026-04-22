@@ -59,9 +59,11 @@ Requires Go 1.23 or newer.
 ```bash
 git clone https://github.com/Azmekk/homelab-browser.git
 cd homelab-browser/src
-go build -o homelab-browser .
-BIND_URL=:8080 DATA_DIR=./data ./homelab-browser
+go build -o ../bin/homelab-browser .
+BIND_URL=:8080 DATA_DIR=./data ../bin/homelab-browser
 ```
+
+Build artifacts are written to `/bin/` at the repo root (gitignored).
 
 ## Configuration
 
