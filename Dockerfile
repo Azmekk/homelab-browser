@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # --- Builder: compile the Go binary ---
-FROM golang:1.23-bookworm AS builder
+FROM golang:1.26-bookworm AS builder
 
 WORKDIR /build
 
