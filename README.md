@@ -15,14 +15,15 @@ It's designed to be boring in the best sense:
 
 ## Features
 
-- 🔒 **Simple auth.** Username + password, bcrypt-hashed, stored in SQLite. Sessions are 90-day sliding — log in once, stay logged in.
-- 🛠 **Admin panel.** CRUD for services, icon upload (≤2MB, png/jpg/svg/webp/gif/ico), page-title editor, per-service "open in new tab" toggle.
-- 🔀 **Reorder how you like.** Drag-and-drop on desktop, ▲/▼ buttons on mobile. Both persist immediately.
-- 🌤 **Live clock + weather** in the top bar of the public dashboard. Uses browser geolocation with IP fallback, no API key.
-- 📱 **Mobile-first design.** Responsive breakpoints, touch-friendly drag, fullscreen modal on small screens.
-- 🪶 **Lean.** Pure-Go binary, ~20MB. The Docker image is a `debian:bookworm-slim` with the binary dropped in — no Node, no Python, no SQLite lib to install.
-- 💾 **SQLite + sqlc.** Type-safe queries generated from hand-written SQL; no ORM at runtime.
-- 🚀 **Chi router + middleware** with sensible defaults (RealIP, Logger, Recoverer, Compress, Timeout).
+- 🧭 **One page, all your services.** Every app you self-host shows up as a clickable tile. Click, go.
+- 🛠 **Edit from your browser.** Add, rename, and delete services without SSH, config files, or container rebuilds.
+- 🖼 **Upload your own icons.** PNG, SVG, JPG, WebP, GIF, or ICO — whatever you've got, up to 2 MB.
+- 🔀 **Reorder your way.** Drag tiles around on desktop, tap ▲/▼ on mobile. Both save instantly.
+- 🌤 **Clock and local weather up top**, refreshed live.
+- 🪟 **Open tabs the way you want.** Mark each service as "open in new tab" or "replace this page" — per service, no global toggle.
+- 📱 **Made for phones too.** The admin panel works one-handed with a full-screen edit dialog and chunky tap targets.
+- 🔒 **Stay signed in.** One login lasts 90 days and refreshes itself as you use the app.
+- 🛡 **Your data stays yours.** No telemetry, no cloud account, no API keys. Weather comes straight from your browser to [Open-Meteo](https://open-meteo.com/) — the server never sees your location.
 
 ## Installation
 
