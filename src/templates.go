@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-//go:embed wwwroot/templates/*.html
+//go:embed templates/*.html
 var templatesFS embed.FS
 
 type templateSet struct {
@@ -36,8 +36,8 @@ func (t *templateSet) load() error {
 			"boolInt": func(i int64) bool { return i != 0 },
 		})
 		parsed, err := tpl.ParseFS(templatesFS,
-			"wwwroot/templates/layout.html",
-			"wwwroot/templates/"+name+".html",
+			"templates/layout.html",
+			"templates/"+name+".html",
 		)
 		if err != nil {
 			return fmt.Errorf("parse %s: %w", name, err)
@@ -70,12 +70,12 @@ func (t *templateSet) render(w http.ResponseWriter, name string, data any) {
 	}
 }
 
-//go:embed wwwroot/styles.css wwwroot/scripts.js wwwroot/admin.js wwwroot/app-icon.png
+//go:embed static/*
 var staticFS embed.FS
 
 func staticFileHandler(name string, contentType string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data, err := fs.ReadFile(staticFS, path.Join("wwwroot", name))
+		data, err := fs.ReadFile(staticFS, path.Join("static", name))
 		if err != nil {
 			http.NotFound(w, r)
 			return
